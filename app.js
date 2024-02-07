@@ -4,7 +4,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 // import routes
-const techReviewsRouter = require("./routes/techReviews");
+const techReviewsRouter = require("./src/routes/techReviews");
 
 
 // config
@@ -14,7 +14,7 @@ dotenv.config();
 const app = express();
 
 // app setting
-app.set("port", 8000);
+app.set("port", 3000);
 
 // middlewares
 app.use(cors());

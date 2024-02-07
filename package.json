@@ -14,7 +14,7 @@
     "nodemon": "^3.0.3"
   },
   "scripts": {
-    "start": "nodemon ./src/app.js"
+    "start": "nodemon app.js"
   },
   "author": "",
   "license": "ISC",
