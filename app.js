@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const morgan = require("morgan");
 // import routes
 const techReviewRouter = require("./routes/techReview");
-
+const specGuideRouter = require("./routes/specGuide");
 
 // config
 dotenv.config();
@@ -24,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // routers
 app.use("/techReview", techReviewRouter);
+app.use("/specGuide", specGuideRouter);
 
 // error handling routers
 app.use((req, res) => {
@@ -33,8 +34,7 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json(err);
-})
-
+});
 
 // start app
 app.listen(app.get("port"), () => {

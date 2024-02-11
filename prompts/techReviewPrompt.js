@@ -48,4 +48,4 @@ const lawPrompt = `
 특허법 조항은 이 문장 뒤 Laws 키워드 다음부터 주어질거야.
 Laws: `;
 
-module.exports = { techPrompt, lawPrompt }
+module.exports = { techPrompt, lawPrompt };

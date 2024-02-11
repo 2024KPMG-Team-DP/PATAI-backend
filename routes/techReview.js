@@ -29,7 +29,7 @@ const getEmbedding = async (t) => {
 const queryToTechIndex = async (userPrompt) => {
   try {
     const embedding = await getEmbedding(userPrompt);
-    const result = await index.namespace("socks").query({
+    const result = await index.namespace("prior_patent").query({
       topK: 5,
       vector: embedding,
       includeMetadata: true
@@ -68,11 +68,13 @@ const generateAnswer = async (userPrompt) => {
         + JSON.stringify(techReviewResult.matches[3].metadata)
         + JSON.stringify(techReviewResult.matches[4].metadata)
       },
+      { role: "system", content: lawPrompt },
       { role: "user", content: userPrompt }
     ];
 
     // 선행기술 검토 답변
     const techResponse = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
+    console.log(techResponse.choices[0].message);
 
     // 특허법 DB 탐색 결과
     const lawReviewResult = await queryToLawIndex(techResponse.choices[0].message.content);
