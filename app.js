@@ -4,7 +4,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 // import routes
-const techReviewsRouter = require("./src/routes/techReviews");
+const techReviewRouter = require("./routes/techReview");
 
 
 // config
@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // routers
-app.use("/techReview", techReviewsRouter);
+app.use("/techReview", techReviewRouter);
 
 // error handling routers
 app.use((req, res) => {
