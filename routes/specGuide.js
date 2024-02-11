@@ -2,7 +2,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
-const { Pinecone } = require("@pinecone-database/pinecone");
 const specGuidePrompt = require("../prompts/specGuidePrompt");
 
 // config
@@ -42,10 +41,11 @@ const generateAnswer = async (userPrompt) => {
 router.post("/", async (req, res) => {
   const { body } = req;
   const userPrompt = JSON.stringify(body);
-  //   console.log(body);
-  console.log(userPrompt);
   const result = await generateAnswer(userPrompt);
-  res.json(result.content);
+  console.log(result.content);
+  const resultToJSON = JSON.parse(result.content);
+  console.log(resultToJSON);
+  res.json(resultToJSON);
 });
 
 module.exports = router;

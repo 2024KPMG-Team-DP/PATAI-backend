@@ -3,7 +3,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 const { Pinecone } = require("@pinecone-database/pinecone");
-const { techPrompt, lawPrompt } = require("../prompts/techReviewPrompt");
+const { techPrompt, lawPrompt, timePrompt } = require("../prompts/techReviewPrompt");
 
 // config
 dotenv.config();
@@ -29,7 +29,7 @@ const getEmbedding = async (t) => {
 const queryToTechIndex = async (userPrompt) => {
   try {
     const embedding = await getEmbedding(userPrompt);
-    const result = await index.namespace("socks").query({
+    const result = await index.namespace("prior_patent").query({
       topK: 5,
       vector: embedding,
       includeMetadata: true
@@ -68,28 +68,32 @@ const generateAnswer = async (userPrompt) => {
         + JSON.stringify(techReviewResult.matches[3].metadata)
         + JSON.stringify(techReviewResult.matches[4].metadata)
       },
+      { role: "system", content: lawPrompt },
+      { role: "system", content: timePrompt },
       { role: "user", content: userPrompt }
     ];
 
     // 선행기술 검토 답변
     const techResponse = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
+    console.log(techResponse.choices[0].message);
+    return techResponse.choices[0].message;
 
-    // 특허법 DB 탐색 결과
-    const lawReviewResult = await queryToLawIndex(techResponse.choices[0].message.content);
+    // // 특허법 DB 탐색 결과
+    // const lawReviewResult = await queryToLawIndex(techResponse.choices[0].message.content);
 
-    // 대화 추가
-    dialogue.push(techResponse.choices[0].message);
-    dialogue.push({
-      role: "system",
-      content: lawPrompt
-      + JSON.stringify(lawReviewResult.matches[0].metadata)
-      + JSON.stringify(lawReviewResult.matches[1].metadata)
-      + JSON.stringify(lawReviewResult.matches[2].metadata)
-    });
+    // // 대화 추가
+    // dialogue.push(techResponse.choices[0].message);
+    // dialogue.push({
+    //   role: "system",
+    //   content: lawPrompt
+    //   + JSON.stringify(lawReviewResult.matches[0].metadata)
+    //   + JSON.stringify(lawReviewResult.matches[1].metadata)
+    //   + JSON.stringify(lawReviewResult.matches[2].metadata)
+    // });
 
-    // 특허법 검토 답변
-    const lawResponse = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
-    return lawResponse.choices[0].message;
+    // // 특허법 검토 답변
+    // const lawResponse = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
+    // return lawResponse.choices[0].message;
   } catch (err) { console.error(err); }
 }
 
