@@ -1,5 +1,6 @@
 // imports
 const express = require("express");
+const multer = require("multer");
 const dotenv = require("dotenv");
 const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 const { Pinecone } = require("@pinecone-database/pinecone");
@@ -29,14 +30,37 @@ const { DocumentProcessorServiceClient } =
   require("@google-cloud/documentai").v1;
 const docAIClient = new DocumentProcessorServiceClient({ keyFilename });
 
+// Configure multer for PDF file storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // specify the directory to store files
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + "-" + Date.now() + ".pdf"); // generate a unique filename
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "application/pdf") {
+      cb(null, true);
+    } else {
+      cb(new Error("Not a PDF file!"), false);
+    }
+  },
+});
+
 //pdf file to text
-const getOCRText = async (pdfFile) => {
+const getOCRText = async (pdfFilePath) => {
   try {
     const name = `projects/${process.env.DOC_AI_PROJECT_ID}/locations/${process.env.DOC_AI_LOCATION}/processors/${process.env.DOC_AI_OCR_PROCESSOR_ID}`;
     //FIXME: PDF 파일을 base64로 인코딩
-    // const fs = require("fs").promises;
+    const fs = require("fs").promises;
     // const imageFile = await fs.readFile("test2.pdf");
-    const encodedImage = Buffer.from(imageFile).toString("base64");
+
+    const pdfFile = await fs.readFile(pdfFilePath); // Read the PDF file
+    const encodedImage = pdfFile.toString("base64");
 
     const request = {
       name,
@@ -47,7 +71,7 @@ const getOCRText = async (pdfFile) => {
     };
     const [result] = await docAIClient.processDocument(request);
     const { document } = result;
-    console.log(document);
+    console.log("document: ", document);
     return document.text;
   } catch (err) {
     console.error(err);
@@ -172,15 +196,30 @@ const generateAnswer = async (userPrompt) => {
 };
 
 // routers
-router.post("/", async (req, res) => {
-  const { body } = req;
-  const userPrompt = JSON.stringify(body);
-  // pdf 파일로 text 추출 -> 필드별로 분류하여 json 생성 -> 기존 userPrompt 대체
-  // const ocrText = await getOCRText(pdfFile);
-  // const userPrompt = await getUserPrompt(ocrText);
-  const result = await generateAnswer(userPrompt);
-  console.log(result);
-  res.json(result.content);
+router.post("/", upload.single("pdf"), async (req, res) => {
+  if (req.file && req.file.mimetype === "application/pdf") {
+    console.log("Uploaded: ", req.file);
+    // Process the PDF with OCR
+    try {
+      // pdf 파일로 text 추출
+      const ocrText = await getOCRText(req.file.path);
+      console.log(`Extracted OCR Text: ${ocrText}`);
+
+      // 필드별로 분류하여 json 생성
+      const userPrompt = await getUserPrompt(ocrText);
+      console.log("User Prompt: ", userPrompt);
+
+      // Proceed with the rest of your processing
+      const result = await generateAnswer(userPrompt);
+      console.log("Result: ", result);
+      res.json(result.content);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error processing PDF file.");
+    }
+  } else {
+    res.status(400).send("No PDF file uploaded or file is not a PDF.");
+  }
 });
 
 module.exports = router;
