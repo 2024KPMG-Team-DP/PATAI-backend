@@ -3,7 +3,8 @@ const ocrPrompt = `
 ocr로 변환한 결과를 기술명(name), 기업명(organization), 작성일자(date), 기술 설명(description), 기존 기술의 문제점(problem), 기술의 개선점(solve), 기술의 기대효과(benefit), 기술의 구성 설명(composition)으로 정확하게 나눠줘.
 기술 설명과 기술 구성 설명은 다른 파트이고 네 맘대로 텍스트를 요약하지 말고 원문 그대로를 반환해야해.
 이제 대답의 형식에 대해 설명해줄게. 답변은 반드시 아래와 같은 형식으로 생성해줘.
-"{
+백틱은 사용하지 마.
+{
   "name": "",
   "organization": "",
   "date": "",
@@ -12,7 +13,7 @@ ocr로 변환한 결과를 기술명(name), 기업명(organization), 작성일�
   "solve": "",
   "benefit": "",
   "composition": "
-}"`;
+}`;
 
 // 선행기술 검토 prompt
 const techPrompt = `
