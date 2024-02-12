@@ -1,20 +1,30 @@
-// imports
+// import modules
 const express = require("express");
 const dotenv = require("dotenv");
 const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 const { Pinecone } = require("@pinecone-database/pinecone");
+const pdf = require("pdf-creator-node");
+const fs = require("fs");
+
+// import files
 const { techPrompt, lawPrompt } = require("../prompts/techReviewPrompt");
+const data = require("./data.json");
 
 // config
 dotenv.config();
 const router = express.Router();
-
 // azure
 const client = new OpenAIClient(process.env.AZURE_ENDPOINT, new AzureKeyCredential(process.env.AZURE_KEY));
-
 // pinecone
 const pc = new Pinecone({ apiKey: process.env.PINECONE_KEY });
 const index = pc.index(process.env.PINECONE_INDEX);
+// pdf creator
+const reportTemplate = fs.readFileSync(`${__dirname}/../templates/techReviewTemplate.html`, "utf-8");
+const reportOption = {
+  format: "A4",
+  orientation: "portrait",
+  border: "10mm"
+};
 
 
 // sentence -> embedding
@@ -51,47 +61,61 @@ const queryToLawIndex = async (techResponse) => {
   return result;
 }
 
-// 답변 생성
-const generateAnswer = async (userPrompt) => {
+// // 답변 생성
+// const generateAnswer = async (userPrompt) => {
+//   try {
+//     // 선행기술 DB 탐색 결과
+//     const techReviewResult = await queryToTechIndex(userPrompt);
+
+//     // 대화 생성
+//     const dialogue = [
+//       {
+//         role: "system",
+//         content: techPrompt
+//         + JSON.stringify(techReviewResult.matches[0].metadata)
+//         + JSON.stringify(techReviewResult.matches[1].metadata)
+//         + JSON.stringify(techReviewResult.matches[2].metadata)
+//         + JSON.stringify(techReviewResult.matches[3].metadata)
+//         + JSON.stringify(techReviewResult.matches[4].metadata)
+//       },
+//       { role: "system", content: lawPrompt },
+//       { role: "user", content: userPrompt }
+//     ];
+
+//     // 선행기술 검토 답변
+//     const techResponse = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
+//     console.log(techResponse.choices[0].message);
+
+//     // 특허법 DB 탐색 결과
+//     const lawReviewResult = await queryToLawIndex(techResponse.choices[0].message.content);
+
+//     // 대화 추가
+//     dialogue.push(techResponse.choices[0].message);
+//     dialogue.push({
+//       role: "system",
+//       content: lawPrompt
+//       + JSON.stringify(lawReviewResult.matches[0].metadata)
+//       + JSON.stringify(lawReviewResult.matches[1].metadata)
+//       + JSON.stringify(lawReviewResult.matches[2].metadata)
+//     });
+
+//     // 특허법 검토 답변
+//     const lawResponse = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
+//     return lawResponse.choices[0].message;
+//   } catch (err) { console.error(err); }
+// }
+
+// 보고서 생성
+const generateReport = async (userPrompt) => {
   try {
-    // 선행기술 DB 탐색 결과
-    const techReviewResult = await queryToTechIndex(userPrompt);
-
-    // 대화 생성
-    const dialogue = [
-      {
-        role: "system",
-        content: techPrompt
-        + JSON.stringify(techReviewResult.matches[0].metadata)
-        + JSON.stringify(techReviewResult.matches[1].metadata)
-        + JSON.stringify(techReviewResult.matches[2].metadata)
-        + JSON.stringify(techReviewResult.matches[3].metadata)
-        + JSON.stringify(techReviewResult.matches[4].metadata)
-      },
-      { role: "system", content: lawPrompt },
-      { role: "user", content: userPrompt }
-    ];
-
-    // 선행기술 검토 답변
-    const techResponse = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
-    console.log(techResponse.choices[0].message);
-
-    // 특허법 DB 탐색 결과
-    const lawReviewResult = await queryToLawIndex(techResponse.choices[0].message.content);
-
-    // 대화 추가
-    dialogue.push(techResponse.choices[0].message);
-    dialogue.push({
-      role: "system",
-      content: lawPrompt
-      + JSON.stringify(lawReviewResult.matches[0].metadata)
-      + JSON.stringify(lawReviewResult.matches[1].metadata)
-      + JSON.stringify(lawReviewResult.matches[2].metadata)
-    });
-
-    // 특허법 검토 답변
-    const lawResponse = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
-    return lawResponse.choices[0].message;
+    const document = {
+      html: reportTemplate,
+      data: { info: data.info, result: data.result },
+      path: "./output.pdf",
+      type: "buffer"
+    };
+    const result = await pdf.create(document, reportOption);
+    return result;
   } catch (err) { console.error(err); }
 }
 
@@ -100,9 +124,12 @@ const generateAnswer = async (userPrompt) => {
 router.post("/", async (req, res) => {
   const { body } = req;
   const userPrompt = JSON.stringify(body);
-  const result = await generateAnswer(userPrompt);
-  console.log(result);
-  res.json(result.content);
+  const result = await generateReport(userPrompt);
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "attachment; filename=report.pdf");
+  res.send(result);
+  // console.log(result);
+  // res.json(result.content);
 });
 
 
