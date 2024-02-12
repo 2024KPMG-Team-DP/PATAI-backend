@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <style>
+      /* font 적용 안됨 */
+      @font-face {
+        font-family: "NotoSansKR-SemiBold";
+        src: url("./fonts/NotoSansKR-SemiBold.ttf") format("truetype");
+      }
+
+      * {
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .page {
+        width: 540px;
+        height: 776px;
+        margin-bottom: 5px;
+        /* padding: 1.5cm 1.5cm 2cm 1.5cm; */
+      }
+      /* @page {
+            size: A4;
+            margin: 0;
+        } */
+
+      .frame {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 2px solid black;
+        width: 525px;
+        height: 765px;
+        margin: 10px auto;
+      }
+      .header {
+        border: 3px solid rgb(209, 208, 208);
+        background-color: rgb(223, 233, 244);
+        /* font-family: "NotoSansKR-SemiBold"; */
+        border-radius: 10px;
+        margin: 150px auto;
+        width: 420px;
+        height: 100px;
+        line-height: 100px;
+        font-size: 32px;
+        font-weight: 600;
+        text-align: center;
+      }
+      .date {
+        margin-top: 280px;
+        width: 525px;
+        text-align: center;
+        font-size: 18px;
+      }
+      .name {
+        margin-top: 40px;
+        width: 525px;
+        text-align: center;
+        font-size: 18px;
+      }
+
+      .container {
+        /* border: 2px solid black; */
+        width: 525px;
+        height: 765px;
+        margin: 10px auto;
+        padding: 20px;
+      }
+      .title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 40px;
+      }
+      .subtitle {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 25px;
+      }
+      .table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        font-size: 12px;
+        margin-bottom: 60px;
+      }
+      .key {
+        width: 100px;
+        height: 30px;
+        border: 1px solid rgb(74, 74, 74);
+        background-color: rgb(230, 236, 240);
+        text-align: center;
+        font-weight: 700;
+      }
+      .value {
+        width: 180px;
+        height: 30px;
+        border: 1px solid rgb(74, 74, 74);
+        line-height: 1.5;
+        text-align: center;
+      }
+      #summary_key {
+        width: 130px;
+      }
+      #summary_value {
+        width: calc(100% - 130px);
+        padding: 10px;
+        text-align:justify;
+      }
+      #otherPatents{
+        height: 45px;
+      }
+      #result_opinion {
+        padding: 10px;
+        text-align: justify;
+      }
+    </style>
+    <div class="page">
+      <div class="frame">
+        <div class="header">등록가능성 진단보고서</div>
+        <div class="date">{{info.nowDate}}</div>
+        <div class="name">Pat AI</div>
+      </div>
+    </div>
+    <div class="page">
+        <div class="container">
+            <div class="title">1. 서지사항 및 발명요지</div>
+            <div class="subtitle">(1) 서지사항</div>
+            <table class="table">
+                <tr>
+                    <td class="key">등록번호</td>
+                    <td class="value">{{info.registration}}</td>
+                    <td class="key">접수일</td>
+                    <td class="value">{{info.registerDate}}</td>
+                </tr>
+                <tr>
+                    <td class="key">의뢰업체명</td>
+                    <td class="value">{{info.company}}</td>
+                    <td class="key">작성일</td>
+                    <td class="value">{{info.nowDate}}</td>
+                </tr>
+                <tr >
+                    <td class="key">특허명</td>
+                    <td class="value">{{info.name}}</td>
+                    <td class="key">종류</td>
+                    <td class="value">{{info.report}}</td>
+                </tr>
+            </table>
+            <div class="subtitle">(2) 발명의 요약</div>
+            <table class="table">
+                <tr>
+                    <td class="key" id="summary_key">발명의 요지</td>
+                    <td class="value" id="summary_value">{{info.summary}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="page" style="margin-bottom: 0;"">
+        <div class="container">
+            <div class="title">2. 종합 검토의견</div>
+            <table class="table" style="margin-bottom: 10px;">
+                <tr>
+                    <td class="key" style="width: 50px">No</td>
+                    <td class="key" style="width: 100px">등록번호</td>
+                    <td class="key" style="width: 80px">일자</td>
+                    <td class="key" style="width: 80px">출원인</td>
+                    <td class="key" style="width: 300px">발명의 명칭</td>
+                    <td class="key" style="width: 70px">관련도</td>
+                </tr>
+                {{#each result.otherPatents}}
+                <tr>
+                    <td class="value" style="height: 45px;">{{this.index}}</td>
+                    <td class="value">{{this.registration}}</td>
+                    <td class="value">{{this.registerDate}}</td>
+                    <td class="value">{{this.company}}</td>
+                    <td class="value">{{this.name}}</td>
+                    <td class="value">{{this.similarity}}</td>
+                </tr>
+                {{/each}}
+            </table>
+            <table class="table">
+                <tr>
+                    <td class="key" style="width: 240px">등록 가능성</td>
+                    <td class="value" style="width: 240px">{{result.probability}}</td>
+                </tr>
+                <tr>
+                    <td class="key" colspan=2>종합 검토의견</td>
+                </tr>
+                <tr>
+                    <td class="value" id="result_opinion" colspan=2>{{result.opinion}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+  </body>
+</html>
