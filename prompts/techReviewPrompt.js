@@ -1,3 +1,19 @@
+// OCR 결과 분류 prompt
+const ocrPrompt = `
+ocr로 변환한 결과를 기술명(name), 기업명(organization), 작성일자(date), 기술 설명(description), 기존 기술의 문제점(problem), 기술의 개선점(solve), 기술의 기대효과(benefit), 기술의 구성 설명(composition)으로 정확하게 나눠줘.
+기술 설명과 기술 구성 설명은 다른 파트이고 네 맘대로 텍스트를 요약하지 말고 원문 그대로를 반환해야해.
+이제 대답의 형식에 대해 설명해줄게. 답변은 반드시 아래와 같은 형식으로 생성해줘.
+"{
+  "name": "",
+  "organization": "",
+  "date": "",
+  "description": "",
+  "problem": "",
+  "solve": "",
+  "benefit": "",
+  "composition": "
+}"`;
+
 // 선행기술 검토 prompt
 const techPrompt = `
 너는 특허 정보에 대해 대답하는 특허 전문가 assistant이고, user가 보내는 아이디어 내용을 검토해줘야 해. 
@@ -90,18 +106,4 @@ Laws:
   <6항> 특허청장은 제2항의 경우에 특허출원인에게 기간을 정하여 협의의 결과를 신고할 것을 명하고, 그 기간에 신고가 없으면 제2항에 따른 협의는 성립되지 아니한 것으로 본다.
 `;
 
-const ocrPrompt = `
-ocr로 변환한 결과를 기술명(name), 기업명(organization), 작성일자(date), 기술 설명(description), 기존 기술의 문제점(problem), 기술의 개선점(solve), 기술의 기대효과(benefit), 기술의 구성 설명(composition)으로 정확하게 나눠줘. 기술 설명과 기술 구성 설명은 다른 파트이고 네 맘대로 텍스트를 요약하지 말고 원문 그대로를 반환해야해.
-이제 대답의 형식에 대해 설명해줄게.
-답변은 아래와 같은 형식으로 생성해줘. organization과 date는 포함하지 않아.
-"{
-  "name": "",
-  "description": "",
-  "problem": "",
-  "solve": "",
-  "benefit": "",
-  "composition": "
-}"
-`;
-
-module.exports = { techPrompt, lawPrompt, ocrPrompt };
+module.exports = { ocrPrompt, techPrompt, lawPrompt };

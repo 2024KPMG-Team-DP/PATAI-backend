@@ -93,21 +93,13 @@ const getOCRText = async (pdfFilePath) => {
 const getUserPrompt = async (ocrText) => {
   try {
     const dialogue = [
-      {
-        role: "system",
-        content: ocrPrompt,
-      },
+      { role: "system", content: ocrPrompt },
       { role: "user", content: ocrText },
     ];
-    const response = await client.getChatCompletions(
-      process.env.AZURE_GPT,
-      dialogue
-    );
+    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
     console.log(response.choices[0].message);
     return response.choices[0].message.content;
-  } catch (err) {
-    console.error(err);
-  }
+  } catch (err) { console.error(err); }
 };
 
 // sentence -> embedding
@@ -285,17 +277,6 @@ const generateReport = async (body, userPrompt) => {
 }
 
 
-// // routers
-// router.post("/", async (req, res) => {
-//   const { body } = req;
-//   const userPrompt = JSON.stringify(body);
-//   const result = await generateReport(body, userPrompt);
-//   res.setHeader("Content-Type", "application/pdf");
-//   res.setHeader("Content-Disposition", "attachment; filename=report.pdf");
-//   res.send(result);
-//   // console.log(result);
-//   // res.json(result.content);
-
 // routers
 router.post("/", upload.single("pdf"), async (req, res) => {
   if (req.file && req.file.mimetype === "application/pdf") {
@@ -311,9 +292,13 @@ router.post("/", upload.single("pdf"), async (req, res) => {
       console.log("User Prompt: ", userPrompt);
 
       // Proceed with the rest of your processing
-      const result = await generateAnswer(userPrompt);
+      const result = await generateReport(JSON.parse(userPrompt), userPrompt);
       console.log("Result: ", result);
-      res.json(result.content);
+
+      // response
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", "attachment; filename=report.pdf");
+      res.send(result);
     } catch (error) {
       console.error(error);
       res.status(500).send("Error processing PDF file.");
