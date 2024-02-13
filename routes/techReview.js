@@ -6,13 +6,8 @@ const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 const { Pinecone } = require("@pinecone-database/pinecone");
 const pdf = require("pdf-creator-node");
 const fs = require("fs");
-
 // import files
-const {
-  techPrompt,
-  lawPrompt,
-  ocrPrompt,
-} = require("../prompts/techReviewPrompt");
+const { techPrompt, lawPrompt, ocrPrompt } = require("../prompts/techReviewPrompt");
 const keyFilename = "doc_ai_key.json";
 
 
@@ -24,7 +19,6 @@ const client = new OpenAIClient(
   process.env.AZURE_ENDPOINT,
   new AzureKeyCredential(process.env.AZURE_KEY)
 );
-
 // pinecone
 const pc = new Pinecone({ apiKey: process.env.PINECONE_KEY });
 const index = pc.index(process.env.PINECONE_INDEX);
@@ -35,12 +29,9 @@ const reportOption = {
   orientation: "portrait",
   border: "10mm"
 };
-
-//Document AI
-const { DocumentProcessorServiceClient } =
-  require("@google-cloud/documentai").v1;
+// Document AI
+const { DocumentProcessorServiceClient } = require("@google-cloud/documentai").v1;
 const docAIClient = new DocumentProcessorServiceClient({ keyFilename });
-
 // Configure multer for PDF file storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -50,19 +41,16 @@ const storage = multer.diskStorage({
     cb(null, file.fieldname + "-" + Date.now() + ".pdf"); // generate a unique filename
   },
 });
-
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "application/pdf") {
-      cb(null, true);
-    } else {
-      cb(new Error("Not a PDF file!"), false);
-    }
+    if (file.mimetype === "application/pdf") { cb(null, true); }
+    else { cb(new Error("Not a PDF file!"), false); }
   },
 });
 
-//pdf file to text
+
+// pdf file to text
 const getOCRText = async (pdfFilePath) => {
   try {
     const name = `projects/${process.env.DOC_AI_PROJECT_ID}/locations/${process.env.DOC_AI_LOCATION}/processors/${process.env.DOC_AI_OCR_PROCESSOR_ID}`;
@@ -119,7 +107,7 @@ const queryToTechIndex = async (userPrompt) => {
   try {
     const embedding = await getEmbedding(userPrompt);
     const result = await index.namespace("prior_patent").query({
-      topK: 5,
+      topK: 3,
       vector: embedding,
       includeMetadata: true,
     });
@@ -142,61 +130,54 @@ const queryToLawIndex = async (techResponse) => {
   return result;
 };
 
-// 답변 생성
-const generateAnswer = async (userPrompt) => {
-  try {
-    // 선행기술 DB 탐색 결과
-    const techReviewResult = await queryToTechIndex(userPrompt);
+// 보고서 항목 객체
+const getReportFields = (body, techReviewSearchResult, response) => {
+  const date = new Date();
 
-    // 대화 생성
-    const dialogue = [
-      {
-        role: "system",
-        content:
-          techPrompt +
-          JSON.stringify(techReviewResult.matches[0].metadata) +
-          JSON.stringify(techReviewResult.matches[1].metadata) +
-          JSON.stringify(techReviewResult.matches[2].metadata) +
-          JSON.stringify(techReviewResult.matches[3].metadata) +
-          JSON.stringify(techReviewResult.matches[4].metadata),
-      },
-      { role: "system", content: lawPrompt },
-      { role: "user", content: userPrompt },
-    ];
+  const data = {
+    info: {
+      name: body.name,
+      company: body.organization,
+      report: "등록가능성 진단보고서",
+      nowDate: `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`,
+      summary: body.description
+    },
+    result: {
+      otherPatents: [
+        {
+          index: techReviewSearchResult.matches[0].id,
+          registration: techReviewSearchResult.matches[0].metadata.registration,
+          registerDate: "",
+          company: "",
+          name: techReviewSearchResult.matches[0].metadata.name,
+          similarity: ""
+        },
+        {
+          index: techReviewSearchResult.matches[1].id,
+          registration: techReviewSearchResult.matches[1].metadata.registration,
+          registerDate: "",
+          company: "",
+          name: techReviewSearchResult.matches[1].metadata.name,
+          similarity: ""
+        },
+        {
+          index: techReviewSearchResult.matches[2].id,
+          registration: techReviewSearchResult.matches[2].metadata.registration,
+          registerDate: "",
+          company: "",
+          name: techReviewSearchResult.matches[2].metadata.name,
+          similarity: ""
+        },
+      ],
+      opinion: response.choices[0].message.content,
+      probability: ""
+    }
+  }
 
-    // 선행기술 검토 답변
-    const techResponse = await client.getChatCompletions(
-      process.env.AZURE_GPT,
-      dialogue
-    );
-    console.log(techResponse.choices[0].message);
-
-    // 특허법 DB 탐색 결과
-    const lawReviewResult = await queryToLawIndex(
-      techResponse.choices[0].message.content
-    );
-
-    // 대화 추가
-    dialogue.push(techResponse.choices[0].message);
-    dialogue.push({
-      role: "system",
-      content:
-        lawPrompt +
-        JSON.stringify(lawReviewResult.matches[0].metadata) +
-        JSON.stringify(lawReviewResult.matches[1].metadata) +
-        JSON.stringify(lawReviewResult.matches[2].metadata),
-    });
-
-    // 특허법 검토 답변
-    const lawResponse = await client.getChatCompletions(
-      process.env.AZURE_GPT,
-      dialogue
-    );
-    return lawResponse.choices[0].message;
-  } catch (err) { console.error(err); }
+  return data;
 }
 
-// 보고서 생성
+// 보고서 작성
 const generateReport = async (body, userPrompt) => {
   try {
     // 선행기술 DB 탐색 결과
@@ -219,50 +200,9 @@ const generateReport = async (body, userPrompt) => {
 
     // 답변
     const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
-    const date = new Date();
 
     // 보고서 항목
-    const data = {
-      info: {
-        registration: "",
-        registerDate: body.date,
-        company: body.organization,
-        nowDate: `${date.getFullYear()}년 ${date.getMonth()}월 ${date.getDate()}일`,
-        name: body.name,
-        report: "등록가능성 진단보고서",
-        summary: body.description
-      },
-      result: {
-        otherPatents: [
-          {
-            index: techReviewSearchResult.matches[0].id,
-            registration: techReviewSearchResult.matches[0].metadata.registration,
-            registerDate: "",
-            company: "",
-            name: techReviewSearchResult.matches[0].metadata.name,
-            similarity: ""
-          },
-          {
-            index: techReviewSearchResult.matches[1].id,
-            registration: techReviewSearchResult.matches[1].metadata.registration,
-            registerDate: "",
-            company: "",
-            name: techReviewSearchResult.matches[1].metadata.name,
-            similarity: ""
-          },
-          {
-            index: techReviewSearchResult.matches[2].id,
-            registration: techReviewSearchResult.matches[2].metadata.registration,
-            registerDate: "",
-            company: "",
-            name: techReviewSearchResult.matches[2].metadata.name,
-            similarity: ""
-          },
-        ],
-        opinion: response.choices[0].message.content,
-        probability: ""
-      }
-    }
+    const data = getReportFields(body, techReviewSearchResult, response);
 
     // 보고서 생성
     const document = {
