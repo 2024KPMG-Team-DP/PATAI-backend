@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <style>
+      /* font 적용 안됨 */
+      @font-face {
+        font-family: "NotoSansKR-SemiBold";
+        src: url("./fonts/NotoSansKR-SemiBold.ttf") format("truetype");
+      }
+
+      * {
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .page {
+        width: 540px;
+        height: 776px;
+        margin-bottom: 5px;
+        /* padding: 1.5cm 1.5cm 2cm 1.5cm; */
+      }
+      /* @page {
+            size: A4;
+            margin: 0;
+        } */
+
+      .frame {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 2px solid black;
+        width: 525px;
+        height: 765px;
+        margin: 10px auto;
+      }
+      .header {
+        border: 3px solid rgb(209, 208, 208);
+        background-color: rgb(223, 233, 244);
+        /* font-family: "NotoSansKR-SemiBold"; */
+        border-radius: 10px;
+        margin: 150px auto;
+        width: 420px;
+        height: 100px;
+        line-height: 100px;
+        font-size: 32px;
+        font-weight: 600;
+        text-align: center;
+      }
+      .date {
+        margin-top: 280px;
+        width: 525px;
+        text-align: center;
+        font-size: 18px;
+      }
+      .name {
+        margin-top: 40px;
+        width: 525px;
+        text-align: center;
+        font-size: 18px;
+      }
+
+      .container {
+        /* border: 2px solid black; */
+        width: 525px;
+        height: 765px;
+        margin: 10px auto;
+        padding: 20px;
+      }
+      .title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 40px;
+      }
+      .subtitle {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 25px;
+      }
+      .subtitle2 {
+        font-weight: 700;
+        font-size: 13px;
+        /* margin-bottom: 25px; */
+        margin-left: 25px;
+      }
+      .item {
+        font-weight: 700;
+        font-size: 12px;
+        margin-top: 25px;
+        margin-left: 50px;
+      }
+      .content1 {
+        font-size: 12px;
+        margin-left: 25px;
+        margin-bottom: 25px;
+      }
+      .content2 {
+        font-size: 12px;
+        margin-left: 50px;
+      }
+      .table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        font-size: 12px;
+        margin-bottom: 60px;
+      }
+      .key {
+        width: 100px;
+        height: 30px;
+        border: 1px solid rgb(74, 74, 74);
+        background-color: rgb(230, 236, 240);
+        text-align: center;
+        font-weight: 700;
+      }
+      .value {
+        width: 180px;
+        height: 30px;
+        border: 1px solid rgb(74, 74, 74);
+        line-height: 1.5;
+        text-align: center;
+      }
+      .blank {
+        margin-bottom: 50px;
+      }
+      #summary_key {
+        width: 130px;
+      }
+      #summary_value {
+        width: calc(100% - 130px);
+        padding: 10px;
+        text-align:justify;
+      }
+      #otherPatents{
+        height: 45px;
+      }
+      #result_opinion {
+        padding: 10px;
+        text-align: justify;
+      }
+    </style>
+    <div class="page">
+      <div class="frame">
+        <div class="header">{{info.report}}</div>
+        <div class="date">{{info.nowDate}}</div>
+        <div class="name">Pat AI</div>
+      </div>
+    </div>
+    <div class="page">
+        <div class="container">
+            <div class="title">1. 서지사항 및 발명요지</div>
+            <div class="subtitle">(1) 서지사항</div>
+            <table class="table">
+                <tr>
+                    <td class="key">특허명</td>
+                    <td class="value">{{info.name}}</td>
+                    <td class="key">의뢰업체명</td>
+                    <td class="value">{{info.company}}</td>
+                </tr>
+                <tr >
+                    <td class="key">문서종류</td>
+                    <td class="value">{{info.report}}</td>
+                    <td class="key">작성일</td>
+                    <td class="value">{{info.nowDate}}</td>
+                </tr>
+            </table>
+            <div class="subtitle">(2) 발명의 요약</div>
+            <table class="table">
+                <tr>
+                    <td class="key" id="summary_key">발명의 요지</td>
+                    <td class="value" id="summary_value">{{info.summary}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="page" style="margin-bottom: 0;">
+        <div class="container">
+            <div class="title">2. 명세서 작성 가이드</div>
+              <div class="subtitle">발명의 설명</div>
+                <div class="subtitle2">[발명의 명칭]</div>
+                  <p class="content1">{{result.name}}</p>
+                <div class="subtitle2">[기술분야]</div>
+                  <p class="content1">{{result.techField}}</p>
+                <div class="subtitle2">[발명의 배경이 되는 기술]</div>
+                  <p class="content1">{{result.backgroundTech}}</p>
+                <div class="subtitle2">[발명의 내용]</div>
+                  <div class="item">[해결하고자 하는 과제]</div>
+                    <p class="content2">{{result.content.problemToSolve}}</p>
+                  <div class="item">[과제의 해결 수단]</div>
+                    <p class="content2">{{result.content.methodForSolve}}</p>
+                  <div class="item">[발명의 효과]</div>
+                    <p class="content2">{{result.content.effectOfInvent}}</p>
+              <br><br>
+              <div class="subtitle">청구범위</div>
+              <div class="subtitle">요약서</div>
+              <div class="subtitle">도면</div>
+        </div>
+    </div>
+  </body>
+</html>
