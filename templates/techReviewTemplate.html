@@ -159,25 +159,23 @@
             </table>
         </div>
     </div>
-    <div class="page" style="margin-bottom: 0;"">
+    <div class="page" style="margin-bottom: 0;">
         <div class="container">
             <div class="title">2. 종합 검토의견</div>
             <table class="table" style="margin-bottom: 10px;">
                 <tr>
-                    <td class="key" style="width: 50px">No</td>
-                    <td class="key" style="width: 100px">등록번호</td>
-                    <td class="key" style="width: 80px">일자</td>
-                    <td class="key" style="width: 80px">출원인</td>
-                    <td class="key" style="width: 300px">발명의 명칭</td>
-                    <td class="key" style="width: 70px">관련도</td>
+                    <td class="key" style="width: 30px">No</td>
+                    <td class="key" style="width: 50px">등록번호</td>
+                    <td class="key" style="width: 50px">발명의 명칭</td>
+                    <td class="key" style="width: 500px">분석</td>
+                    <td class="key" style="width: 50px">관련도</td>
                 </tr>
                 {{#each result.otherPatents}}
                 <tr>
                     <td class="value" style="height: 45px;">{{this.index}}</td>
                     <td class="value">{{this.registration}}</td>
-                    <td class="value">{{this.registerDate}}</td>
-                    <td class="value">{{this.company}}</td>
                     <td class="value">{{this.name}}</td>
+                    <td class="value">{{this.analysis}}</td>
                     <td class="value">{{this.similarity}}</td>
                 </tr>
                 {{/each}}
@@ -191,7 +189,11 @@
                     <td class="key" colspan=2>종합 검토의견</td>
                 </tr>
                 <tr>
-                    <td class="value" id="result_opinion" colspan=2>{{result.opinion}}</td>
+                    <td class="value" id="result_opinion" colspan=2>
+                      {{result.conclusion}}
+                      <br>
+                      {{result.guide}}
+                    </td>
                 </tr>
             </table>
         </div>
