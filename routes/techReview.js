@@ -84,9 +84,17 @@ const getUserPrompt = async (ocrText) => {
       { role: "system", content: ocrPrompt },
       { role: "user", content: ocrText },
     ];
-    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
+    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue, { seed: 42 });
     console.log(response.choices[0].message);
-    return response.choices[0].message.content;
+
+    // backtick(`) handling
+    let result = response.choices[0].message.content;
+    if (result[0]==='`') {
+      result = result.slice(7);
+      result = result.slice(0, -4);
+    }
+
+    return result;
   } catch (err) { console.error(err); }
 };
 
@@ -199,7 +207,7 @@ const generateReport = async (body, userPrompt) => {
     ];
 
     // 답변
-    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
+    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue, { seed: 42 });
 
     // 보고서 항목
     const data = getReportFields(body, techReviewSearchResult, response);

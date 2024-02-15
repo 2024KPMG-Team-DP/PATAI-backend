@@ -82,9 +82,17 @@ const getUserPrompt = async (ocrText) => {
       { role: "system", content: ocrPrompt },
       { role: "user", content: ocrText },
     ];
-    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue);
+    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue, { seed: 42 });
     console.log(response.choices[0].message);
-    return response.choices[0].message.content;
+
+    // backtick(`) handling
+    let result = response.choices[0].message.content;
+    if (result[0]==='`') {
+      result = result.slice(7);
+      result = result.slice(0, -4);
+    }
+
+    return result;
   } catch (err) { console.error(err); }
 };
 
@@ -125,11 +133,19 @@ const generateReport = async (body, userPrompt) => {
     ];
 
     // 답변
-    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue, { response_format: { type: "json_object" } });
+    // const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue, { seed: 42, response_format: { type: "json_object" } });
+    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue, { seed: 1 });
     
+    // backtick(`) handling
+    let result = response.choices[0].message.content;
+    if (result[0]==='`') {
+      result = result.slice(7);
+      result = result.slice(0, -4);
+    }
+
     // 보고서 항목
-    console.log("Response: ", response.choices[0].message.content);
-    const data = getReportFields(body, JSON.parse(response.choices[0].message.content));
+    console.log("Response: ", result);
+    const data = getReportFields(body, JSON.parse(result));
     console.log("Fields: ", data);
 
     // 보고서 생성
@@ -139,8 +155,8 @@ const generateReport = async (body, userPrompt) => {
       path: "./output.pdf",
       type: "buffer"
     };
-    const result = await pdf.create(document, reportOption);
-    return result;
+    const report = await pdf.create(document, reportOption);
+    return report;
   } catch (err) { console.error(err); }
 };
 
