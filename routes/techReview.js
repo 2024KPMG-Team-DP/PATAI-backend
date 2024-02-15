@@ -139,7 +139,7 @@ const queryToLawIndex = async (techResponse) => {
 };
 
 // 보고서 항목 객체
-const getReportFields = (body, techReviewSearchResult, response) => {
+const getReportFields = (body, response) => {
   const date = new Date();
 
   const data = {
@@ -151,36 +151,26 @@ const getReportFields = (body, techReviewSearchResult, response) => {
       summary: body.description
     },
     result: {
-      otherPatents: [
-        {
-          index: techReviewSearchResult.matches[0].id,
-          registration: techReviewSearchResult.matches[0].metadata.registration,
-          registerDate: "",
-          company: "",
-          name: techReviewSearchResult.matches[0].metadata.name,
-          similarity: ""
-        },
-        {
-          index: techReviewSearchResult.matches[1].id,
-          registration: techReviewSearchResult.matches[1].metadata.registration,
-          registerDate: "",
-          company: "",
-          name: techReviewSearchResult.matches[1].metadata.name,
-          similarity: ""
-        },
-        {
-          index: techReviewSearchResult.matches[2].id,
-          registration: techReviewSearchResult.matches[2].metadata.registration,
-          registerDate: "",
-          company: "",
-          name: techReviewSearchResult.matches[2].metadata.name,
-          similarity: ""
-        },
-      ],
-      opinion: response.choices[0].message.content,
-      probability: ""
+      otherPatents: [],
+      conclusion: response.conclusion,
+      guide: response.guide
     }
   }
+
+  for (let i=0; i<response.similars.length; i++) {
+    const patent = {
+      index: i+1,
+      name: response.similars[i].name,
+      registration: response.similars[i].registration,
+      registerDate: "",
+      company: "",
+      analysis: response.similars[i].analysis,
+      similarity: response.similars[i].similarity
+    };
+    data.result.otherPatents.push(patent);
+  }
+
+  console.log(data);
 
   return data;
 }
@@ -208,9 +198,16 @@ const generateReport = async (body, userPrompt) => {
 
     // 답변
     const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue, { seed: 42 });
+    
+    // backtick(`) handling
+    let result = response.choices[0].message.content;
+    if (result[0]==='`') {
+      result = result.slice(7);
+      result = result.slice(0, -4);
+    }
 
     // 보고서 항목
-    const data = getReportFields(body, techReviewSearchResult, response);
+    const data = getReportFields(body, JSON.parse(result));
 
     // 보고서 생성
     const document = {
@@ -219,8 +216,8 @@ const generateReport = async (body, userPrompt) => {
       path: "./output.pdf",
       type: "buffer"
     };
-    const result = await pdf.create(document, reportOption);
-    return result;
+    const report = await pdf.create(document, reportOption);
+    return report;
   } catch (err) { console.error(err); }
 }
 
