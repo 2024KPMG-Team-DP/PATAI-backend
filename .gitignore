@@ -2,3 +2,4 @@
 **/.env
 **/doc_ai_key.json
 **/uploads/*
+.DS_Store
