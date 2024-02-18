@@ -19,14 +19,18 @@ const client = new OpenAIClient(
   new AzureKeyCredential(process.env.AZURE_KEY)
 );
 // pdf creator
-const reportTemplate = fs.readFileSync(`${__dirname}/../templates/specGuideTemplate.html`, "utf-8");
+const reportTemplate = fs.readFileSync(
+  `${__dirname}/../templates/specGuideTemplate.html`,
+  "utf-8"
+);
 const reportOption = {
   format: "A4",
   orientation: "portrait",
-  border: "10mm"
+  border: "10mm",
 };
 // Document AI
-const { DocumentProcessorServiceClient } = require("@google-cloud/documentai").v1;
+const { DocumentProcessorServiceClient } =
+  require("@google-cloud/documentai").v1;
 const docAIClient = new DocumentProcessorServiceClient({ keyFilename });
 // Configure multer for PDF file storage
 const storage = multer.diskStorage({
@@ -82,18 +86,24 @@ const getUserPrompt = async (ocrText) => {
       { role: "system", content: ocrPrompt },
       { role: "user", content: ocrText },
     ];
-    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue, { seed: 42 });
+    const response = await client.getChatCompletions(
+      process.env.AZURE_GPT,
+      dialogue,
+      { seed: 42 }
+    );
     console.log(response.choices[0].message);
 
     // backtick(`) handling
     let result = response.choices[0].message.content;
-    if (result[0]==='`') {
+    if (result[0] === "`") {
       result = result.slice(7);
       result = result.slice(0, -4);
     }
 
     return result;
-  } catch (err) { console.error(err); }
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 // 보고서 항목 객체
@@ -105,8 +115,10 @@ const getReportFields = (body, response) => {
       name: body.name,
       company: body.organization,
       report: "명세서 작성 가이드",
-      nowDate: `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`,
-      summary: body.description
+      nowDate: `${date.getFullYear()}년 ${
+        date.getMonth() + 1
+      }월 ${date.getDate()}일`,
+      summary: body.description,
     },
     result: {
       name: response.name,
@@ -115,13 +127,13 @@ const getReportFields = (body, response) => {
       content: {
         problemToSolve: response.content.problemToSolve,
         methodForSolve: response.content.methodForSolve,
-        effectOfInvent: response.content.effectOfInvent
-      }
-    }
-  }
+        effectOfInvent: response.content.effectOfInvent,
+      },
+    },
+  };
 
   return data;
-}
+};
 
 // 답변 생성
 const generateReport = async (body, userPrompt) => {
@@ -134,11 +146,15 @@ const generateReport = async (body, userPrompt) => {
 
     // 답변
     // const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue, { seed: 42, response_format: { type: "json_object" } });
-    const response = await client.getChatCompletions(process.env.AZURE_GPT, dialogue, { seed: 1 });
-    
+    const response = await client.getChatCompletions(
+      process.env.AZURE_GPT,
+      dialogue,
+      { seed: 1 }
+    );
+
     // backtick(`) handling
     let result = response.choices[0].message.content;
-    if (result[0]==='`') {
+    if (result[0] === "`") {
       result = result.slice(7);
       result = result.slice(0, -4);
     }
@@ -153,13 +169,14 @@ const generateReport = async (body, userPrompt) => {
       html: reportTemplate,
       data: { info: data.info, result: data.result },
       path: "./output.pdf",
-      type: "buffer"
+      type: "buffer",
     };
     const report = await pdf.create(document, reportOption);
-    return report;
-  } catch (err) { console.error(err); }
+    return { pdf: report.toString("base64"), data };
+  } catch (err) {
+    console.error(err);
+  }
 };
-
 
 // routers
 router.post("/", upload.single("pdf"), async (req, res) => {
@@ -179,7 +196,7 @@ router.post("/", upload.single("pdf"), async (req, res) => {
       console.log("Result: ", result);
 
       // response
-      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Type", "application/json");
       res.setHeader("Content-Disposition", "attachment; filename=report.pdf");
       res.send(result);
     } catch (error) {
