@@ -27,8 +27,8 @@
 
       .page {
         width: 540px;
-        height: 776px;
-        margin-bottom: 5px;
+        min-height: 900px;
+        margin-bottom: 15px;
         /* padding: 1.5cm 1.5cm 2cm 1.5cm; */
       }
       /* @page {
@@ -88,27 +88,6 @@
         font-size: 14px;
         margin-bottom: 25px;
       }
-      .subtitle2 {
-        font-weight: 700;
-        font-size: 13px;
-        /* margin-bottom: 25px; */
-        margin-left: 25px;
-      }
-      .item {
-        font-weight: 700;
-        font-size: 12px;
-        margin-top: 25px;
-        margin-left: 50px;
-      }
-      .content1 {
-        font-size: 12px;
-        margin-left: 25px;
-        margin-bottom: 25px;
-      }
-      .content2 {
-        font-size: 12px;
-        margin-left: 50px;
-      }
       .table {
         border-collapse: collapse;
         border-spacing: 0;
@@ -130,8 +109,19 @@
         line-height: 1.5;
         text-align: center;
       }
-      .blank {
-        margin-bottom: 50px;
+      .value_left {
+        width: 180px;
+        height: 30px;
+        border: 1px solid rgb(74, 74, 74);
+        line-height: 1.5;
+        padding: 10px;
+        text-align: justify;
+      }
+      #logo {
+        margin-top: 40px;
+        text-align: center;
+        width: 125px;
+        height: auto;
       }
       #summary_key {
         width: 130px;
@@ -144,7 +134,7 @@
       #otherPatents{
         height: 45px;
       }
-      #result_opinion {
+      #content_left {
         padding: 10px;
         text-align: justify;
       }
@@ -153,54 +143,38 @@
       <div class="frame">
         <div class="header">{{info.report}}</div>
         <div class="date">{{info.nowDate}}</div>
-        <div class="name">Pat AI</div>
+        <div class="name">PatAI</div>
+        <!-- <img id="logo" src="logo.png" alt="logo"> -->
       </div>
     </div>
     <div class="page">
         <div class="container">
-            <div class="title">1. 서지사항 및 발명요지</div>
-            <div class="subtitle">(1) 서지사항</div>
-            <table class="table">
-                <tr>
-                    <td class="key">특허명</td>
-                    <td class="value">{{info.name}}</td>
-                    <td class="key">의뢰업체명</td>
-                    <td class="value">{{info.company}}</td>
-                </tr>
-                <tr >
-                    <td class="key">문서종류</td>
-                    <td class="value">{{info.report}}</td>
-                    <td class="key">작성일</td>
-                    <td class="value">{{info.nowDate}}</td>
-                </tr>
-            </table>
-            <div class="subtitle">(2) 발명의 요약</div>
-            <table class="table">
-                <tr>
-                    <td class="key" id="summary_key">발명의 요지</td>
-                    <td class="value" id="summary_value">{{info.summary}}</td>
-                </tr>
+            <div class="title">1. 청구범위 비교 및 검토 결과</div>
+            <table class="table" style="margin-bottom: 10px;">
+              <tr>
+                  <td class="key" style="width: 30px">청구항</td>
+                  <td class="key" style="width: 650px">분석 결과</td>
+              </tr>
+              {{#each result.claims}}
+              <tr>
+                  <td class="value" style="height: 45px;">{{this.index}}</td>
+                  <td class="value_left">{{this.content}}</td>
+              </tr>
+              {{/each}}
             </table>
         </div>
     </div>
     <div class="page" style="margin-bottom: 0;">
         <div class="container">
-            <div class="title">2. 명세서 작성 가이드</div>
-              <div class="subtitle">발명의 설명</div>
-                <div class="subtitle2">[발명의 명칭]</div>
-                  <p class="content1">{{result.name}}</p>
-                <div class="subtitle2">[기술분야]</div>
-                  <p class="content1">{{result.techField}}</p>
-                <div class="subtitle2">[발명의 배경이 되는 기술]</div>
-                  <p class="content1">{{result.backgroundTech}}</p>
-                <div class="subtitle2">[발명의 내용]</div>
-                  <div class="item">[해결하고자 하는 과제]</div>
-                    <p class="content2">{{result.content.problemToSolve}}</p>
-                  <div class="item">[과제의 해결 수단]</div>
-                    <p class="content2">{{result.content.methodForSolve}}</p>
-                  <div class="item">[발명의 효과]</div>
-                    <p class="content2">{{result.content.effectOfInvent}}</p>
-              <br>
+            <div class="title">2. 종합 검토의견</div>
+            <table class="table" style="width: 480px">
+                <tr>
+                    <td class="key" colspan=2>종합 검토의견</td>
+                </tr>
+                <tr>
+                    <td class="value_left" id="content_left" colspan=2>{{result.conclusion}}</td>
+                </tr>
+            </table>
         </div>
     </div>
   </body>

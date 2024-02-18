@@ -6,6 +6,7 @@ const morgan = require("morgan");
 // import routes
 const techReviewRouter = require("./routes/techReview");
 const specGuideRouter = require("./routes/specGuide");
+const specReviewRouter = require("./routes/specReview");
 
 // config
 dotenv.config();
@@ -25,6 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 // routers
 app.use("/techReview", techReviewRouter);
 app.use("/specGuide", specGuideRouter);
+app.use("/specReview", specReviewRouter);
 
 // error handling routers
 app.use((req, res) => {
