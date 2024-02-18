@@ -150,7 +150,8 @@ const generateReport = async (applicationSpec, targetSpec) => {
       type: "buffer",
     };
     const report = await pdf.create(document, reportOption);
-    return { pdf: report.toString("base64"), data };
+    // return { pdf: report.toString("base64"), data };
+    return report;
   } catch (err) {
     console.error(err);
   }
@@ -201,7 +202,8 @@ router.post("/", upload.fields([{ name: "applicationSpec" }, { name: "targetSpec
     console.log("Result: ", result);
 
     // // response
-    res.setHeader("Content-Type", "application/json");
+    // res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=report.pdf");
     res.send(result);
   } catch (error) {

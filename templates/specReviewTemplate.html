@@ -27,8 +27,8 @@
 
       .page {
         width: 540px;
-        height: 776px;
-        margin-bottom: 5px;
+        min-height: 900px;
+        margin-bottom: 15px;
         /* padding: 1.5cm 1.5cm 2cm 1.5cm; */
       }
       /* @page {
@@ -117,6 +117,12 @@
         padding: 10px;
         text-align: justify;
       }
+      #logo {
+        margin-top: 40px;
+        text-align: center;
+        width: 125px;
+        height: auto;
+      }
       #summary_key {
         width: 130px;
       }
@@ -138,6 +144,7 @@
         <div class="header">{{info.report}}</div>
         <div class="date">{{info.nowDate}}</div>
         <div class="name">PatAI</div>
+        <!-- <img id="logo" src="logo.png" alt="logo"> -->
       </div>
     </div>
     <div class="page">
