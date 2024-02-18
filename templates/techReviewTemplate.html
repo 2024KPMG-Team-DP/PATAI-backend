@@ -127,7 +127,7 @@
     </style>
     <div class="page">
       <div class="frame">
-        <div class="header">등록가능성 진단보고서</div>
+        <div class="header">{{info.report}}</div>
         <div class="date">{{info.nowDate}}</div>
         <div class="name">Pat AI</div>
       </div>
@@ -180,11 +180,7 @@
                 </tr>
                 {{/each}}
             </table>
-            <table class="table">
-                <tr>
-                    <td class="key" style="width: 240px">등록 가능성</td>
-                    <td class="value" style="width: 240px">{{result.probability}}</td>
-                </tr>
+            <table class="table" style="width: 480px">
                 <tr>
                     <td class="key" colspan=2>종합 검토의견</td>
                 </tr>

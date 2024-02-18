@@ -146,7 +146,7 @@ const getReportFields = (body, response) => {
     info: {
       name: body.name,
       company: body.organization,
-      report: "등록가능성 진단보고서",
+      report: "선행기술 검토 보고서",
       nowDate: `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`,
       summary: body.description
     },
